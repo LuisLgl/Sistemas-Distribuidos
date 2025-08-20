@@ -76,4 +76,4 @@ const fazerCadastro = () => {
 </script> // 
 
 
-<style scoped src="./login.css"></style>
+<style scoped></style>

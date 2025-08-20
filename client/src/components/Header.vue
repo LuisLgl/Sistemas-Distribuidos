@@ -1,12 +1,31 @@
+<script setup>
+import { useRouter } from 'vue-router'
+import { useUiStore } from '@/stores/ui'
+
+const router = useRouter()
+const uiStore = useUiStore()
+
+function voltar() {
+  router.back()
+}
+
+function realizarBusca() {
+  alert('Função de busca não implementada!')
+}
+
+function adicionarItem() {
+  uiStore.openAddItemModal()
+}
+</script>
+
 <template>
   <header>
     <nav>
-      <RouterLink to="/home" class="logo-container">
-        <img src="@/assets/logo.png" alt="Logo da Aplicação" class="logo-img">
+      <RouterLink to="/" class="logo-container">
+        <img src="/logo.png" alt="Logo da Aplicação" class="logo-img">
       </RouterLink>
       
       <div class="right-actions">
-        
         <button
           v-if="$route.name === 'home'"
           @click="realizarBusca"
@@ -38,35 +57,9 @@
           &times;
         </button>
       </div>
-
     </nav>
   </header>
-
-  <main>
-    <RouterView />
-  </main>
 </template>
-
-<script setup lang="ts">
-import { RouterLink, RouterView, useRouter } from 'vue-router'
-import { useUiStore } from '@/stores/ui' // Importe a store da UI
-
-const router = useRouter()
-const uiStore = useUiStore() // Instancie a store
-
-function voltar() {
-  router.back()
-}
-
-function realizarBusca() {
-  alert('Função de busca ativada!')
-}
-
-// ESTA É A FUNÇÃO IMPORTANTE
-function adicionarItem() {
-  uiStore.openAddItemModal() // Chama a ação para abrir o pop-up
-}
-</script>
 
 <style scoped>
 header {
@@ -99,13 +92,6 @@ nav {
   gap: 10px;
 }
 
-main {
-  padding: 20px;
-}
-
-/* ## ESTILOS QUE FALTAVAM ## */
-
-/* 1. Estilo genérico para TODOS os botões de ação */
 .action-button {
   display: flex;
   align-items: center;
@@ -125,14 +111,13 @@ main {
   height: 20px;
 }
 
-/* 2. Estilos específicos para cada botão no hover */
 .search-button:hover {
-  background-color: #007bff; /* Azul */
+  background-color: #007bff;
   color: white;
 }
 
 .add-button:hover {
-  background-color: #28a745; /* Verde */
+  background-color: #28a745;
   color: white;
 }
 
@@ -143,7 +128,7 @@ main {
 }
 
 .close-button:hover {
-  background-color: #f44336; /* Vermelho */
+  background-color: #f44336;
   color: white;
   transform: rotate(90deg);
 }
