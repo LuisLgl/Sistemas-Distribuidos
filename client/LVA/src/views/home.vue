@@ -3,6 +3,15 @@
     <h1>Minha Biblioteca</h1>
     <p>Aqui estarão os seus livros.</p>
 
+    <div class="carousel-container">
+      <div v-for="(livro, index) in livros" :key="index" class="book-card">
+        <img :src="livro.imagem" :alt="'Capa do livro ' + livro.titulo">
+        <div class="book-info">
+          <h3>{{ livro.titulo }}</h3>
+          <p>{{ livro.autor }}</p>
+        </div>
+      </div>
+    </div>
     <div v-if="uiStore.isAddItemModalVisible" class="modal-overlay" @click="uiStore.closeAddItemModal">
       <div class="modal-content" @click.stop>
         <button class="modal-close-button" @click="uiStore.closeAddItemModal">&times;</button>
@@ -41,9 +50,44 @@
 import { ref } from 'vue'
 import { useUiStore } from '@/stores/ui'
 
+// 1. Definimos a "forma" de um objeto Livro
+//    Dizemos que 'paginas' e 'ano' podem ser um número OU nulos.
+interface Livro {
+  titulo: string;
+  autor: string;
+  paginas: number | null;
+  ano: number | null;
+  imagem: string;
+}
+
 const uiStore = useUiStore()
 
-// Objeto reativo para guardar as informações do formulário
+// 2. Aplicamos essa "forma" à nossa lista de livros
+const livros = ref<Livro[]>([
+  {
+    titulo: 'O Senhor dos Anéis',
+    autor: 'J.R.R. Tolkien',
+    paginas: 1200,
+    ano: 1954,
+    imagem: 'https://placehold.co/300x450/556B2F/FFF?text=O+Senhor+dos+Anéis'
+  },
+  {
+    titulo: 'Duna',
+    autor: 'Frank Herbert',
+    paginas: 688,
+    ano: 1965,
+    imagem: 'https://placehold.co/300x450/D2B48C/000?text=Duna'
+  },
+  {
+    titulo: '1984',
+    autor: 'George Orwell',
+    paginas: 328,
+    ano: 1949,
+    imagem: 'https://placehold.co/300x450/800000/FFF?text=1984'
+  }
+])
+
+// O objeto do formulário agora corresponde à regra que criamos
 const novoLivro = ref({
   titulo: '',
   autor: '',
@@ -52,11 +96,15 @@ const novoLivro = ref({
 })
 
 function salvarLivro() {
-  // Aqui você enviaria os dados para um backend/API
+  // Agora não há mais conflito, pois a lista aceita livros com 'paginas: null'
+  livros.value.push({
+    ...novoLivro.value,
+    imagem: `https://placehold.co/300x450/333/FFF?text=${novoLivro.value.titulo.replace(/ /g, '+')}`
+  })
+
   console.log('Salvando novo livro:', novoLivro.value)
   alert(`Livro "${novoLivro.value.titulo}" salvo com sucesso!`)
 
-  // Limpa o formulário
   novoLivro.value = {
     titulo: '',
     autor: '',
@@ -64,12 +112,16 @@ function salvarLivro() {
     ano: null
   }
   
-  // Fecha o pop-up usando a ação da store
   uiStore.closeAddItemModal()
 }
 </script>
 
 <style scoped>
+/* Estilos para o container da página */
+.home-container {
+  padding: 20px;
+}
+
 /* Estilos do Pop-up (Modal) e Formulário */
 .modal-overlay {
   position: fixed;
@@ -138,5 +190,73 @@ function salvarLivro() {
 
 .submit-button:hover {
   background-color: #218838;
+}
+
+/* ================================== */
+/* ==== ESTILOS PARA O CARROSSEL ==== */
+/* ================================== */
+.carousel-container {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding: 1.5rem 0;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc #f0f0f0;
+}
+
+.carousel-container::-webkit-scrollbar {
+  height: 8px;
+}
+.carousel-container::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+.carousel-container::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+.carousel-container::-webkit-scrollbar-thumb:hover {
+  background-color: #aaa;
+}
+
+.book-card {
+  flex: 0 0 180px; 
+  scroll-snap-align: start;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+.book-card img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.book-info {
+  padding: 1rem;
+}
+
+.book-info h3 {
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-info p {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
 }
 </style>
