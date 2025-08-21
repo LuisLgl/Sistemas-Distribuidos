@@ -45,6 +45,8 @@ body {
    escondido atrás do nosso cabeçalho fixo. */
 main.layout-public,
 main.layout-app {
-  padding-top: 85px; /* Ajuste este valor se a altura do seu header for diferente */
+  main.has-header {
+  padding-top: 72px; /* <-- Corrigido para a altura exata do cabeçalho */
+} /* Ajuste este valor se a altura do seu header for diferente */
 }
 </style>

@@ -7,9 +7,9 @@
       </div>
       <nav class="navigation">
         <!-- Links que levam para as rotas de login e de um futuro cadastro -->
-        <RouterLink to="/login" class="nav-link">Acesse sua conta</RouterLink>
+        <RouterLink to="/login" class="nav-link">Login</RouterLink>
         <!-- O botão de cadastro pode abrir o modal na página de login -->
-        <button type="button" class="nav-link button" @click="handleRegisterClick">Cadastrar-se</button>
+        <RouterLink :to="{ name: 'Register' }" class="nav-link button">Cadastrar-se</RouterLink>
       </nav>
     </div>
   </header>
@@ -24,11 +24,7 @@ const router = useRouter();
 
 // Esta função garante que o modal de cadastro abra se já estivermos na página de login,
 // ou nos leva para lá primeiro se estivermos em outra página pública.
-const handleRegisterClick = () => {
-  router.push({ name: 'Login' }).then(() => {
-    uiStore.openAddItemModal(); // Reutilizando o modal que já temos
-  });
-}
+
 </script>
 
 <style scoped>
@@ -44,7 +40,7 @@ const handleRegisterClick = () => {
   box-sizing: border-box;
 }
 .container {
-  max-width: 1200px;
+
   margin: 0 auto;
   display: flex;
   justify-content: space-between;

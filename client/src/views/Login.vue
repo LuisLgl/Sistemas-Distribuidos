@@ -51,12 +51,7 @@
       </form>
 
       <!-- Links extras -->
-      <div class="login-links">
-        <!-- CORRIGIDO: Botão para abrir o modal de cadastro -->
-        <button type="button" @click="abrirModal">Cadastrar-se</button>
-        <!-- Mantido como um link simples por enquanto -->
-        <a href="#">Esqueceu sua senha?</a>
-      </div>
+      
     </div>
 
     <!-- Modal de Cadastro -->
@@ -163,17 +158,20 @@ const fecharModal = () => { isModalVisible.value = false }
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 1rem;
-}
+  overflow: hidden; /* previne scroll */
+} 
 
 .login-container {
   background: white;
-  padding: 2.5rem;
+  padding: 2.5rem 2rem; /* ajuste leve no padding horizontal */
   border-radius: 16px;
   box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.15);
   width: 100%;
   max-width: 400px;
   text-align: center;
+  box-sizing: border-box;
 }
+
 
 h1 {
   margin-bottom: 2rem;
@@ -280,8 +278,7 @@ input.error {
 .login-links {
   margin-top: 1.5rem;
   display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  justify-content: center; /* centraliza o botão */
   gap: 1rem;
 }
 
