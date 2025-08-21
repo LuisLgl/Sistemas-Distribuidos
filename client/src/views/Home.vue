@@ -1,13 +1,14 @@
 <script setup>
 import { ref } from 'vue'
-import { useUiStore } from '@/stores/ui'
-import BookCard from '@/components/BookCard.vue'
-import BookForm from '@/components/BookForm.vue' // ← Importe o novo componente
+import { useAuthStore } from '@/stores/authStore' // MELHORIA: Nome do arquivo mais consistente
+import BookCard from '@/components/books/BookCard.vue' // CORRIGIDO: Caminho do import
+import BookForm from '@/components/books/BookForm.vue' // CORRIGIDO: Caminho do import
 
-const uiStore = useUiStore()
+const authStore = useAuthStore()
 
 const livros = ref([
   {
+    id: 1, // MELHORIA: Adicionado ID único
     titulo: 'O Senhor dos Anéis',
     autor: 'J.R.R. Tolkien',
     paginas: 1200,
@@ -15,47 +16,49 @@ const livros = ref([
     imagem: 'https://placehold.co/300x450/556B2F/FFF?text=O+Senhor+dos+Anéis'
   },
   {
+    id: 2, // MELHORIA: Adicionado ID único
     titulo: '1984',
     autor: 'George Orwell',
     paginas: 328,
     ano: 1949,
     imagem: 'https://placehold.co/300x450/000/FFF?text=1984'
-}
+  }
 ])
 
 function salvarLivro(bookData) {
-  livros.value.push({
+  const novoLivro = {
     ...bookData,
-    imagem: `https://placehold.co/300x450/333/FFF?text=${bookData.titulo.replace(/ /g, '+')}`
-  })
+    id: Date.now(), // MELHORIA: Gerando um ID único para o novo livro
+    imagem: `https://placehold.co/300x450/333/FFF?text=${encodeURIComponent(bookData.titulo)}` // MELHORIA: Usando encodeURIComponent para tratar caracteres especiais
+  }
   
+  livros.value.push(novoLivro)
+  
+  // MELHORIA: Usar alert() não é ideal, mas mantendo sua lógica por enquanto.
+  // Uma notificação "toast" seria uma experiência de usuário melhor.
   alert(`Livro "${bookData.titulo}" salvo com sucesso!`)
-  uiStore.closeAddItemModal()
+  authStore.closeAddItemModal()
 }
 </script>
 
 <template>
   <div class="home-container">
     <h1>Minha Biblioteca</h1>
-    <!-- <p>Aqui estarão os seus livros. </p> -->
 
     <div class="books-grid">
       <BookCard 
-        v-for="(livro, index) in livros" 
-        :key="index" 
+        v-for="livro in livros" 
+        :key="livro.id"  
         :livro="livro" 
-      />
-    </div>
+      /> </div>
 
-    <!-- Modal com o componente BookForm -->
-    <div v-if="uiStore.isAddItemModalVisible" class="modal-overlay" @click="uiStore.closeAddItemModal">
+    <div v-if="authStore.isAddItemModalVisible" class="modal-overlay" @click="uiStore.closeAddItemModal">
       <div class="modal-content" @click.stop>
-        <button class="modal-close-button" @click="uiStore.closeAddItemModal">&times;</button>
+        <button class="modal-close-button" @click="authStore.closeAddItemModal">&times;</button>
         
-        <!-- Use o componente BookForm -->
         <BookForm 
           @submit="salvarLivro"
-          @cancel="uiStore.closeAddItemModal"
+          @cancel="authStore.closeAddItemModal"
         />
       </div>
     </div>
@@ -63,24 +66,30 @@ function salvarLivro(bookData) {
 </template>
 
 <style scoped>
-*{
-    box-size: border-box;
-    padding: 0;
-    margin: 0
+/* NOTA: O ideal é que resets globais como este fiquem em um arquivo CSS principal 
+  (ex: src/assets/styles/main.css) e não dentro de um componente com 'scoped'.
+*/
+* {
+  box-sizing: border-box; /* CORRIGIDO: Erro de digitação de "box-sizing" */
+  padding: 0;
+  margin: 0;
 }
+
 .home-container {
-  padding: 1rem;
-  /* justify-content: center; */
+  padding: 2rem;
 }
+
 .home-container h1 {
-    margin-bottom: 1rem;
-    color: #333;
+  margin-bottom: 2rem;
+  color: #333;
+  text-align: center;
+  font-size: 2.5rem;
 }
+
 .books-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  /* justify-content: center; */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2rem;
 }
 
 .modal-overlay {
@@ -89,7 +98,7 @@ function salvarLivro(bookData) {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -98,7 +107,6 @@ function salvarLivro(bookData) {
 
 .modal-content {
   background-color: white;
-  /* padding: 0;  */
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   width: 90%;
