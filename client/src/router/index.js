@@ -3,7 +3,8 @@ import { useAuthStore } from '@/stores/authStore.js'
 import Login from '@/views/Login.vue'
 import Home from '@/views/Home.vue'
 import Register from '@/views/Register.vue'
-import RegisterBook from '@/views/RegisterBook.vue' // <-- 1. Importe o componente
+import RegisterBook from '@/views/RegisterBook.vue'
+import EditBook from '@/views/EditBook.vue' // <-- 1. Importe o novo componente
 
 const routes = [
   {
@@ -25,9 +26,15 @@ const routes = [
     meta: { layout: 'app' }
   },
   {
-    path: '/register-book', // <-- 2. Adicione a nova rota
+    path: '/register-book',
     name: 'RegisterBook',
     component: RegisterBook,
+    meta: { layout: 'app' }
+  },
+  {
+    path: '/edit-book/:id', // <-- 2. Adicione a nova rota dinâmica com o ID
+    name: 'EditBook',
+    component: EditBook,
     meta: { layout: 'app' } // <-- 3. Esta página exige o layout da aplicação
   },
 ]
