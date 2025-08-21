@@ -3,7 +3,7 @@
     <div class="container">
       <div class="logo">
         <img src="@/assets/images/logo.png" alt="Logo da Biblioteca" />
-        <span>Biblioteca</span>
+        <span>SPECIAL WEEK</span>
       </div>
       <nav class="navigation">
         <!-- Links que levam para as rotas de login e de um futuro cadastro -->
