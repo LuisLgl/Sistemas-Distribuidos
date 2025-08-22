@@ -124,6 +124,7 @@ async function handleDelete(id) {
   display: flex;
   flex-direction: column;
   text-align: left;
+  margin-left: 8rem ;
   gap: 1.5rem;
 }
 
