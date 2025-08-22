@@ -7,7 +7,7 @@
       </div>
 
       <div class="actions-and-nav">
-        <RouterLink to="/" class="nav-link">Biblioteca</RouterLink>
+        <RouterLink to="/" class="nav-link button">Biblioteca</RouterLink>
         <RouterLink :to="{ name: 'RegisterBook' }" class="nav-link button">Adicionar Livro</RouterLink>
 
         <div class="user-actions">
@@ -278,4 +278,8 @@ const handleLogout = () => {
   opacity: 0;
   transform: translateY(-10px);
 }
+
+
+
+
 </style>

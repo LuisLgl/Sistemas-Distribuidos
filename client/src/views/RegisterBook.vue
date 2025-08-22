@@ -68,13 +68,28 @@
           </div>
         </div>
 
+        <!-- NOVO CAMPO: Link do Livro -->
+        <div class="form-group">
+          <label for="link">Capa do livro:</label>
+          <input 
+            type="url" 
+            id="link" 
+            v-model="form.link" 
+            :class="{ 'error': errors.link }"
+            @blur="validateField('link', form.link)"
+            @input="clearError('link')"
+            required 
+          />
+          <span v-if="errors.link" class="error-message">{{ errors.link }}</span>
+        </div>
+
         <button 
           type="submit" 
           class="btn-salvar" 
           :disabled="isLoading"
         >
           <span v-if="isLoading" class="spinner"></span>
-          {{ isLoading ? 'Salvando...' : 'Salvar' }}
+          {{ isLoading ? 'Salvando...' : 'Adicionar Livro' }}
         </button>
       </form>
     </div>
@@ -92,6 +107,7 @@ const form = reactive({
   autor: '',
   ano: null,
   paginas: null,
+  link: '' // <-- novo campo
 })
 
 const isLoading = ref(false)
@@ -117,6 +133,11 @@ const validateField = (field, value) => {
       if (!value || value <= 0) newErrors.paginas = 'Número de páginas deve ser um número válido.'
       else delete newErrors.paginas
       break
+    case 'link':
+      if (!value) newErrors.link = 'O link do livro é obrigatório.'
+      else if (!/^https?:\/\/.+/.test(value)) newErrors.link = 'Insira um link válido (começando com http ou https).'
+      else delete newErrors.link
+      break
   }
   
   errors.value = newErrors
@@ -128,6 +149,7 @@ const salvarLivro = () => {
   validateField('autor', form.autor)
   validateField('ano', form.ano)
   validateField('paginas', form.paginas)
+  validateField('link', form.link)
   
   if (Object.keys(errors.value).length > 0) {
     return
@@ -143,6 +165,7 @@ const salvarLivro = () => {
     form.autor = ''
     form.ano = null
     form.paginas = null
+    form.link = ''
     isLoading.value = false
     router.push({ name: 'Home' })
   }, 1000)
@@ -156,6 +179,7 @@ const clearError = (field) => {
   }
 }
 </script>
+
 
 <style scoped>
 .cadastro-page {
@@ -259,6 +283,7 @@ input:focus {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 1rem;
 }
 
 .btn-salvar:hover:not(:disabled) {

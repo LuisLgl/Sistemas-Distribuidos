@@ -4,14 +4,17 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useBooksStore } from '@/stores/bookStore'
 import BookCard from '@/components/books/BookCard.vue'
+import BookForm from '@/components/books/BookForm.vue'
 
 const authStore = useAuthStore()
 const booksStore = useBooksStore()
 const router = useRouter()
 
+// REMOVIDO: A lista de livros não está mais aqui, ela está no store.
+
 const livrosFiltrados = computed(() => {
   const query = booksStore.searchQuery.toLowerCase()
-  let filtered = booksStore.livros.filter(livro =>
+  let filtered = booksStore.livros.filter(livro => // <-- USA A LISTA DO STORE
     livro.titulo.toLowerCase().includes(query) ||
     livro.autor.toLowerCase().includes(query)
   )
@@ -23,16 +26,26 @@ const livrosFiltrados = computed(() => {
   return filtered
 })
 
+function salvarLivro(bookData) {
+  const novoLivro = {
+    ...bookData,
+    id: Date.now(),
+    imagem: `https://placehold.co/300x450/333/FFF?text=${encodeURIComponent(bookData.titulo)}`
+  }
+  
+  booksStore.addBook(novoLivro)
+  
+  alert(`Livro "${bookData.titulo}" salvo com sucesso!`)
+  authStore.closeAddItemModal()
+}
+
 function handleEdit(id) {
   router.push({ name: 'EditBook', params: { id } })
 }
 
 function handleDelete(id) {
   if (confirm('Tem certeza que deseja excluir este livro?')) {
-    const index = booksStore.livros.findIndex(livro => livro.id === id);
-    if (index !== -1) {
-      booksStore.livros.splice(index, 1);
-    }
+    booksStore.deleteBook(id); // <-- CHAMA A FUNÇÃO DO STORE
   }
 }
 </script>
@@ -46,12 +59,23 @@ function handleDelete(id) {
         v-for="livro in livrosFiltrados" 
         :key="livro.id" 
         :livro="livro"
+        @click="router.push({ name: 'InfoBook', params: { id: livro.id } })"
         @edit="handleEdit"
         @delete="handleDelete"
       />
       <p v-if="livrosFiltrados.length === 0">Nenhum livro encontrado.</p>
     </div>
-    
+
+    <div v-if="authStore.isAddItemModalVisible" class="modal-overlay" @click="authStore.closeAddItemModal">
+      <div class="modal-content" @click.stop>
+        <button class="modal-close-button" @click="authStore.closeAddItemModal">&times;</button>
+        
+        <BookForm 
+          @submit="salvarLivro"
+          @cancel="authStore.closeAddItemModal"
+        />
+      </div>
+    </div>
   </div>
 </template>
 

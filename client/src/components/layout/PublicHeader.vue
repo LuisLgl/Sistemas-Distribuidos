@@ -7,9 +7,9 @@
       </div>
       <nav class="navigation">
         <!-- Links que levam para as rotas de login e de um futuro cadastro -->
-        <RouterLink to="/login" class="nav-link">Login</RouterLink>
-        <!-- O botão de cadastro pode abrir o modal na página de login -->
+        <RouterLink to="/login" class="nav-link button">Login</RouterLink>
         <RouterLink :to="{ name: 'Register' }" class="nav-link button">Cadastrar-se</RouterLink>
+
       </nav>
     </div>
   </header>
