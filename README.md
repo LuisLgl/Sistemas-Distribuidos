@@ -91,3 +91,4 @@ npm run dev
 Este projeto foi desenvolvido para fins educacionais como parte do Trabalho 01 de Sistemas Distribuídos.
 
 ## Link do Vídeo
+https://youtu.be/wO8cxMFgzO8
