@@ -19,7 +19,8 @@ export const useBooksStore = defineStore('books', () => {
       const lowerCaseQuery = searchQuery.value.toLowerCase();
       books = books.filter(book => 
         book.titulo.toLowerCase().includes(lowerCaseQuery) ||
-        book.autor.toLowerCase().includes(lowerCaseQuery)
+        book.autor.toLowerCase().includes(lowerCaseQuery) ||
+        String(book.ano).includes(lowerCaseQuery)
       );
     }
 
