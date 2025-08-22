@@ -1,27 +1,46 @@
-// Este arquivo simula 100% a nossa API de autenticação.
-// Ele NÃO faz nenhuma chamada de rede real.
+import axios from 'axios';
+
+// O endereço onde o seu servidor backend está a ser executado
+const API_URL = 'http://localhost:3000/api';
 
 export const authService = {
-  login(email, password) {
-    // Usamos uma Promise para simular que a operação leva um tempo, como uma API de verdade.
-    return new Promise((resolve, reject) => {
+  async login(email, password) {
+    try {
+      // 1. Faz um pedido POST real para a nossa API no backend
+      //    Envia o email e a password no corpo do pedido
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        email,
+        password,
+      });
       
-      // Simula o tempo de espera da rede (1 segundo)
-      setTimeout(() => {
-        // Lógica de validação TOTALMENTE FALSA, apenas para teste
-        if (email === 'teste@gmail.com' && password === '123456') {
-          console.log('SIMULAÇÃO: Login VÁLIDO.');
-          // Se o login for válido, a "Promise" é resolvida com sucesso.
-          resolve({
-            token: "token-falso-gerado-pelo-frontend-123",
-            user: { name: "Aurea Macedo" }
-          });
-        } else {
-          console.log('SIMULAÇÃO: Login INVÁLIDO.');
-          // Se for inválido, a "Promise" é rejeitada com uma mensagem de erro.
-          reject('E-mail ou senha inválidos.');
-        }
-      }, 1000); // 1 segundo de atraso para parecer real
-    });
+      // 2. Se o pedido for bem-sucedido (status 200),
+      //    devolve os dados que o backend enviou (utilizador, token, etc.)
+      return response.data;
+
+    } catch (error) {
+      // 3. Se o backend devolver um erro (ex: status 401 para credenciais inválidas),
+      //    o axios irá capturá-lo aqui.
+      //    Lançamos a mensagem de erro para que o Login.vue a possa mostrar ao utilizador.
+      throw error.response.data.message || 'Ocorreu um erro no login.';
+    }
+  },
+
+  // ADICIONADO: Função para registar um novo utilizador
+  async register(nome, email, password) {
+    try {
+      // 1. Faz um pedido POST para o endpoint de registo do backend
+      const response = await axios.post(`${API_URL}/auth/register`, {
+        nome,
+        email,
+        password,
+      });
+
+      // 2. Devolve a resposta de sucesso do backend
+      return response.data;
+
+    } catch (error) {
+      // 3. Captura e lança a mensagem de erro do backend
+      throw error.response.data.message || 'Ocorreu um erro ao tentar registar.';
+    }
   }
 };

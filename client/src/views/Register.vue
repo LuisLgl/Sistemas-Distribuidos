@@ -1,8 +1,9 @@
 <template>
   <div class="cadastro-page">
     <div class="cadastro-container">
-      <h1>Cadastrar Usuário</h1>
+      <h1>Crie a sua Conta</h1>
 
+      <!-- Mensagem de erro geral vinda do backend -->
       <div v-if="errors.general" class="error-message general-error">
         {{ errors.general }}
       </div>
@@ -37,7 +38,7 @@
         </div>
 
         <div class="form-group">
-          <label for="senha">Senha:</label>
+          <label for="senha">Palavra-passe:</label>
           <input 
             type="password" 
             id="senha" 
@@ -56,7 +57,7 @@
           :disabled="isLoading"
         >
           <span v-if="isLoading" class="spinner"></span>
-          {{ isLoading ? 'Cadastrando...' : 'Cadastrar' }}
+          {{ isLoading ? 'A registar...' : 'Registar' }}
         </button>
       </form>
     </div>
@@ -66,6 +67,7 @@
 <script setup>
 import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { authService } from '@/services/authService' // Importa o nosso serviço de autenticação
 
 const router = useRouter()
 
@@ -88,17 +90,17 @@ const validateField = (field, value) => {
   
   switch (field) {
     case 'nome':
-      if (!value) newErrors.nome = 'Nome é obrigatório.'
+      if (!value) newErrors.nome = 'O nome é obrigatório.'
       else delete newErrors.nome
       break
     case 'email':
-      if (!value) newErrors.email = 'E-mail é obrigatório.'
-      else if (!isValidEmail.value) newErrors.email = 'E-mail deve ter um formato válido.'
+      if (!value) newErrors.email = 'O e-mail é obrigatório.'
+      else if (!isValidEmail.value) newErrors.email = 'O e-mail deve ter um formato válido.'
       else delete newErrors.email
       break
     case 'senha':
-      if (!value) newErrors.senha = 'Senha é obrigatória.'
-      else if (value.length < 6) newErrors.senha = 'Senha deve ter pelo menos 6 caracteres.'
+      if (!value) newErrors.senha = 'A palavra-passe é obrigatória.'
+      else if (value.length < 6) newErrors.senha = 'A palavra-passe deve ter pelo menos 6 caracteres.'
       else delete newErrors.senha
       break
   }
@@ -106,8 +108,9 @@ const validateField = (field, value) => {
   errors.value = newErrors
 }
 
-const cadastrarUsuario = () => {
-  errors.value = {} // Limpa erros anteriores
+// Função de registo atualizada para usar o authService
+const cadastrarUsuario = async () => {
+  clearError('general');
   validateField('nome', form.nome)
   validateField('email', form.email)
   validateField('senha', form.senha)
@@ -118,16 +121,20 @@ const cadastrarUsuario = () => {
   
   isLoading.value = true
   
-  console.log('Dados do usuário a ser cadastrado:', { nome: form.nome, email: form.email })
+  try {
+    // Chama a função 'register' do nosso serviço de autenticação
+    const response = await authService.register(form.nome, form.email, form.senha);
 
-  setTimeout(() => {
-    alert('Cadastro concluído com sucesso!')
-    form.nome = ''
-    form.email = ''
-    form.senha = ''
-    isLoading.value = false
-    router.push({ name: 'Login' })
-  }, 1000)
+    console.log('Registo bem-sucedido:', response);
+    alert('Registo concluído com sucesso! Por favor, faça o login.');
+    router.push({ name: 'Login' }); // Redireciona para a página de login
+
+  } catch (error) {
+    // Mostra o erro vindo do backend
+    errors.value.general = error;
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 const clearError = (field) => {
@@ -140,7 +147,7 @@ const clearError = (field) => {
 </script>
 
 <style scoped>
-/* Estilo para a página inteira, replicando o fundo e centralização do login */
+/* O seu CSS anterior foi mantido, pois já está ótimo */
 .cadastro-page {
   display: flex;
   justify-content: center;
@@ -151,7 +158,6 @@ const clearError = (field) => {
   overflow: hidden;
 }
 
-/* Estilo do container principal do formulário, replicando o visual do login */
 .cadastro-container {
   background: white;
   padding: 2.5rem 2rem;
@@ -182,7 +188,6 @@ label {
   color: #555;
 }
 
-/* Estilos dos campos de input, ajustados para combinar com o login */
 input {
   width: 100%;
   padding: 1rem;
@@ -193,7 +198,6 @@ input {
   box-sizing: border-box;
 }
 
-/* Estilo para input com erro */
 input.error {
   border-color: #e74c3c;
   box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
