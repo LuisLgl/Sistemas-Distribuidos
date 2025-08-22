@@ -65,7 +65,7 @@ const getBookById = async (req, res) => {
   }
 };
 
-// --- ATUALIZAR UM LIVRO (AGORA COM UPLOAD DE IMAGEM OPCIONAL) ---
+// --- ATUALIZAR UM LIVRO (COM MELHOR TRATAMENTO DE ERROS) ---
 const updateBook = async (req, res) => {
   const { id } = req.params;
   const { titulo, autor, ano, paginas } = req.body;
@@ -80,24 +80,35 @@ const updateBook = async (req, res) => {
         .from('capas_livros')
         .upload(nomeFicheiro, imagemFile.buffer, { contentType: imagemFile.mimetype });
 
-      if (uploadError) throw new Error('Não foi possível fazer o upload da nova imagem.');
+      // Se houver um erro no upload, regista-o e lança uma exceção
+      if (uploadError) {
+        console.error('ERRO NO UPLOAD PARA O SUPABASE STORAGE:', uploadError);
+        throw new Error('Não foi possível fazer o upload da nova imagem.');
+      }
 
       const { data: urlData } = supabase.storage.from('capas_livros').getPublicUrl(nomeFicheiro);
       imagemUrl = urlData.publicUrl;
     }
 
     // Atualiza os dados no banco de dados
-    const { data, error } = await supabase
+    const { data, error: dbError } = await supabase
       .from('livros')
       .update({ titulo, autor, ano, paginas, imagem: imagemUrl })
       .eq('id', id)
       .select();
 
-    if (error) throw error;
+    // Se houver um erro na atualização do banco de dados, regista-o e lança uma exceção
+    if (dbError) {
+      console.error('ERRO NA ATUALIZAÇÃO DO BANCO DE DADOS:', dbError);
+      throw new Error('Não foi possível atualizar os dados do livro.');
+    }
+    
     if (data.length === 0) return res.status(404).json({ message: 'Livro não encontrado para atualizar.' });
 
     res.status(200).json(data[0]);
   } catch (error) {
+    // O erro capturado aqui será agora mais específico
+    console.error('ERRO FINAL NA FUNÇÃO updateBook:', error.message);
     res.status(500).json({ message: 'Erro ao atualizar o livro.', error: error.message });
   }
 };
@@ -114,20 +125,6 @@ const deleteBook = async (req, res) => {
   }
 };
 
-// --- APAGAR MÚLTIPLOS LIVROS ---
-const deleteMultipleBooks = async (req, res) => {
-  const { ids } = req.body;
-  if (!ids || !Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ message: 'Um array de IDs é obrigatório.' });
-  }
-  try {
-    const { error } = await supabase.from('livros').delete().in('id', ids);
-    if (error) throw error;
-    res.status(200).json({ message: 'Livros apagados com sucesso.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Erro ao apagar os livros.', error: error.message });
-  }
-};
 
 // Exporta todas as funções
 module.exports = {
@@ -136,5 +133,4 @@ module.exports = {
   getBookById,
   updateBook,
   deleteBook,
-  deleteMultipleBooks,
 };

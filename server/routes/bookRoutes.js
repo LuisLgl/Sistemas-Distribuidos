@@ -3,24 +3,24 @@ const router = express.Router();
 const bookController = require('../controllers/bookController');
 const multer = require('multer');
 
+// Configura o multer para guardar o ficheiro temporariamente na memória
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// Rota de Criar Livro (já existente)
+// Rota para CRIAR um livro (já existente)
 router.post('/', upload.single('imagem'), bookController.createBook);
 
-// NOVA ROTA PARA LISTAR TODOS OS LIVROS
-// Quando um pedido GET chegar a /api/books, executa a função getBooks.
+// Rota para LER todos os livros (já existente)
 router.get('/', bookController.getBooks);
 
-// Rota para buscar um livro por ID (ex: GET /api/books/123)
+// Rota para LER um livro por ID (já existente)
 router.get('/:id', bookController.getBookById);
 
-// Rota para atualizar um livro por ID (ex: PUT /api/books/123)
-router.put('/:id', bookController.updateBook);
+// Rota para ATUALIZAR um livro por ID
+// CORRIGIDO: Adicionado o middleware 'upload.single('imagem')' para processar o upload
+router.put('/:id', upload.single('imagem'), bookController.updateBook);
 
-// Rota para apagar um livro por ID (ex: DELETE /api/books/123)
+// Rota para APAGAR um livro por ID (já existente)
 router.delete('/:id', bookController.deleteBook);
 
 module.exports = router;
-
