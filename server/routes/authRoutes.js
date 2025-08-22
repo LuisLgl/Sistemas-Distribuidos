@@ -2,8 +2,12 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 
-// Define a rota: POST /api/auth/login
-// Quando um pedido POST chegar, executa a função 'login' do controlador.
+// Rota de Login (já existente)
 router.post('/login', authController.login);
+
+// NOVA ROTA DE REGISTO
+// Quando um pedido POST chegar a /api/auth/register,
+// executa a função 'register' do nosso controlador.
+router.post('/register', authController.register);
 
 module.exports = router;
