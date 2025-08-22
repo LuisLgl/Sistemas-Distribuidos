@@ -63,10 +63,27 @@ npm start
 npm run dev
 ```
 
+### 2. Configuração do Frontend
+
+```bash
+# Navegar para a pasta do cliente (em outro terminal)
+cd client
+
+# Instalar dependências
+npm install
+
+# Configurar variáveis de ambiente
+# Crie um arquivo .env.local com:
+VUE_APP_API_URL=http://localhost:3001/api
+
+# Executar a aplicação
+npm run dev
+```
+
 ## Desenvolvedores
 
-| Áurea Letícia Carvalho Macedo | (https://github.com/aureamcd) |
-| Luís Gustavo Luz de Deus Ramos | (https://github.com/LuisLgl) |
+| Áurea Letícia Carvalho Macedo (https://github.com/aureamcd) |
+| Luís Gustavo Luz de Deus Ramos (https://github.com/LuisLgl) |
 | Viviany da Silva Araújo (https://github.com/VivySilva) |
 
 
