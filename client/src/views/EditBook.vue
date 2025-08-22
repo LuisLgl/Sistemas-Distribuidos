@@ -174,6 +174,7 @@ const atualizarLivro = async () => {
 
 <style scoped>
 /* Estilos base (consistentes com as outras páginas) */
+/* Estilos base (consistentes com as outras páginas) */
 .cadastro-page {
   display: flex;
   justify-content: center;
