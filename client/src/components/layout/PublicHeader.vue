@@ -33,13 +33,14 @@ import { RouterLink } from 'vue-router'
   z-index: 100;
   box-sizing: border-box;
 }
+
 .container {
-  max-width: 1200px; /* Adicionado para consistência */
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .logo {
   display: flex;
   align-items: center;
