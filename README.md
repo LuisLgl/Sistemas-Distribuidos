@@ -12,7 +12,6 @@ Sistema web distribuído para cadastro e gerenciamento de livros, desenvolvido c
   - Visualizar biblioteca pessoal
   - Editar informações dos livros
   - Excluir livros
-- **Interface Responsiva**: Design adaptável para diferentes dispositivos
 - **Persistência de Dados**: Armazenamento em nuvem com Supabase
 
 ## Tecnologias Utilizadas
