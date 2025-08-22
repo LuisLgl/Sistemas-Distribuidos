@@ -192,6 +192,10 @@ export const useBooksStore = defineStore('books', () => {
     sortOrder.value = sortOrder.value === 'asc' ? null : 'asc';
   }
 
+  function deleteBook(id) {
+    livros.value = livros.value.filter(livro => livro.id !== id)
+  }
+
   return { 
     livros, 
     searchQuery, 
@@ -199,6 +203,7 @@ export const useBooksStore = defineStore('books', () => {
     getBookById, 
     addBook, 
     updateBook,
+    deleteBook,
     setSearchQuery, 
     toggleSortOrder 
   }

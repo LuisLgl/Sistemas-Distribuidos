@@ -68,6 +68,20 @@
           </div>
         </div>
 
+        <div class="form-group">
+          <label for="imagem">Capa do Livro:</label>
+          <input 
+            type="text" 
+            id="imagem" 
+            v-model="form.imagem" 
+            :class="{ 'error': errors.imagem }"
+            @blur="validateField('imagem', form.imagem)"
+            @input="clearError('imagem')"
+            required 
+          />
+          <span v-if="errors.imagem" class="error-message">{{ errors.imagem }}</span>
+        </div>
+
         <button 
           type="submit" 
           class="btn-salvar" 
@@ -133,6 +147,10 @@ const validateField = (field, value) => {
       if (!value || value <= 0) newErrors.paginas = 'Número de páginas deve ser um número válido.'
       else delete newErrors.paginas
       break
+    case 'imagem':
+      if (!value) newErrors.imagem = 'URL da imagem é obrigatória.'
+      else delete newErrors.imagem
+      break
   }
   
   errors.value = newErrors
@@ -144,6 +162,7 @@ const atualizarLivro = () => {
   validateField('autor', form.autor)
   validateField('ano', form.ano)
   validateField('paginas', form.paginas)
+  validateField('imagem', form.imagem)
   
   if (Object.keys(errors.value).length > 0) {
     return
@@ -155,7 +174,8 @@ const atualizarLivro = () => {
     booksStore.updateBook({ ...form })
     alert('Livro atualizado com sucesso!')
     isLoading.value = false
-    router.push({ name: 'Home' })
+    // REDIRECIONAMENTO CORRIGIDO
+    router.push({ name: 'InfoBook', params: { id: form.id } })
   }, 1000)
 }
 
@@ -208,6 +228,7 @@ h1 {
   flex: 1;
   flex-direction: column;
   text-align: left;
+  
 }
 
 label {
@@ -270,7 +291,9 @@ input:focus {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 1rem;
 }
+
 
 .btn-salvar:hover:not(:disabled) {
   background: linear-gradient(135deg, #36976e, #2d7a5a);
