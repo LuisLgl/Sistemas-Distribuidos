@@ -57,7 +57,7 @@
           :disabled="isLoading"
         >
           <span v-if="isLoading" class="spinner"></span>
-          {{ isLoading ? 'A registar...' : 'Registar' }}
+          {{ isLoading ? 'Confirme seu email' : 'Registar' }}
         </button>
       </form>
     </div>
@@ -126,7 +126,7 @@ const cadastrarUsuario = async () => {
     const response = await authService.register(form.nome, form.email, form.senha);
 
     console.log('Registo bem-sucedido:', response);
-    alert('Registo concluído com sucesso! Por favor, faça o login.');
+    alert('Conta criada com sucesso! Verifique o seu e-mail para confirmar antes de fazer login.');
     router.push({ name: 'Login' }); // Redireciona para a página de login
 
   } catch (error) {

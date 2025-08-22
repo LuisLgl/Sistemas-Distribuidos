@@ -88,6 +88,28 @@ const isValidEmail = computed(() => {
   return emailRegex.test(email.value)
 })
 
+const errorMessages = {
+  "Email not confirmed": "E-mail não confirmado. Verifique sua caixa de entrada.",
+  "Invalid login credentials": "Credenciais inválidas. Verifique seu e-mail e senha.",
+  "User already registered": "Este e-mail já está cadastrado.",
+  "Password should be at least 6 characters": "A senha deve ter pelo menos 6 caracteres.",
+  "Token expired or invalid": "Sessão expirada. Faça login novamente."
+}
+
+const translateError = (error) => {
+  if (!error) return "Ocorreu um erro inesperado."
+
+  const message = typeof error === "string" ? error : error.message || ""
+
+  // Se estiver no dicionário, traduz
+  if (errorMessages[message]) {
+    return errorMessages[message]
+  }
+
+  // Fallback genérico
+  return "Erro ao processar sua solicitação. Tente novamente."
+}
+
 const validateField = (field, value) => {
   const newErrors = { ...errors.value }
   
@@ -129,7 +151,7 @@ const handleLogin = async () => {
 
   } catch (error) {
     console.error('Erro no login:', error)
-    errors.value.general = typeof error === 'string' ? error : 'Credenciais inválidas. Tente novamente.'
+    errors.value.general = translateError(error)
   } finally {
     isLoading.value = false
   }
