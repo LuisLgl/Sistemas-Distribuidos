@@ -1,10 +1,11 @@
 <template>
   <header class="app-header" ref="headerRef">
     <div class="container header-content">
-      <div class="logo-container">
-        <img src="@/assets/images/logo.png" alt="Logo" class="logo" />
+          <RouterLink to="/" class="logo-container">
+
+       <img src="@/assets/images/logo.png" alt="Logo" class="logo" />
         <span class="logo-text">SPECIAL WEEK</span>
-      </div>
+      </RouterLink>
 
       <div class="actions-and-nav">
         <RouterLink to="/" class="nav-link button">Biblioteca</RouterLink>
@@ -25,15 +26,18 @@
             </button>
           </div>
 
-          <div class="profile-menu" ref="profileMenuRef">
-            <button @click="toggleProfileMenu" class="profile-button" aria-label="Menu do Usuário" :aria-expanded="isProfileMenuOpen">
-              <div class="avatar">AM</div>
+          <!-- O menu de perfil agora é dinâmico -->
+          <div class="profile-menu" ref="profileMenuRef" v-if="authStore.isLoggedIn">
+            <button @click="toggleProfileMenu" class="profile-button" aria-label="Menu do Utilizador" :aria-expanded="isProfileMenuOpen">
+              <!-- Exibe as iniciais do utilizador -->
+              <div class="avatar">{{ authStore.userInitials }}</div>
             </button>
             <Transition name="fade">
               <div v-if="isProfileMenuOpen" class="profile-dropdown">
                 <div class="dropdown-header">
-                  <strong>Aurea Macedo</strong>
-                  <small>aurea@email.com</small>
+                  <!-- Exibe o nome completo e o e-mail do utilizador -->
+                  <strong>{{ authStore.user.user_metadata.full_name }}</strong>
+                  <small>{{ authStore.user.email }}</small>
                 </div>
                 <ul>
                   <li><button @click="handleLogout">Sair</button></li>
@@ -106,6 +110,12 @@ const handleLogout = () => {
 </script>
 
 <style scoped>
+
+.logo-container {
+  text-decoration: none;
+}
+
+/* O seu CSS foi mantido integralmente */
 .app-header {
   background-color: #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -278,8 +288,4 @@ const handleLogout = () => {
   opacity: 0;
   transform: translateY(-10px);
 }
-
-
-
-
 </style>

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useBooksStore } from '@/stores/bookStore'
@@ -10,42 +10,36 @@ const authStore = useAuthStore()
 const booksStore = useBooksStore()
 const router = useRouter()
 
-// REMOVIDO: A lista de livros não está mais aqui, ela está no store.
-
-const livrosFiltrados = computed(() => {
-  const query = booksStore.searchQuery.toLowerCase()
-  let filtered = booksStore.livros.filter(livro => // <-- USA A LISTA DO STORE
-    livro.titulo.toLowerCase().includes(query) ||
-    livro.autor.toLowerCase().includes(query)
-  )
-  
-  if (booksStore.sortOrder === 'asc') {
-    filtered = [...filtered].sort((a, b) => a.titulo.localeCompare(b.titulo))
-  }
-  
-  return filtered
-})
-
-function salvarLivro(bookData) {
-  const novoLivro = {
-    ...bookData,
-    id: Date.now(),
-    imagem: `https://placehold.co/300x450/333/FFF?text=${encodeURIComponent(bookData.titulo)}`
-  }
-  
-  booksStore.addBook(novoLivro)
-  
-  alert(`Livro "${bookData.titulo}" salvo com sucesso!`)
-  authStore.closeAddItemModal()
-}
+// onMounted é chamado assim que o componente é criado.
+// É o local perfeito para ir buscar os dados iniciais.
+onMounted(() => {
+  // Pede ao store para ir buscar os livros à API.
+  booksStore.fetchBooks();
+});
 
 function handleEdit(id) {
+  // Navega para a página de edição com o ID do livro
   router.push({ name: 'EditBook', params: { id } })
 }
 
-function handleDelete(id) {
-  if (confirm('Tem certeza que deseja excluir este livro?')) {
-    booksStore.deleteBook(id); // <-- CHAMA A FUNÇÃO DO STORE
+async function handleDelete(id) {
+  if (confirm('Tem a certeza de que deseja apagar este livro?')) {
+    try {
+      await booksStore.deleteBook(id);
+      alert('Livro apagado com sucesso!');
+    } catch (error) {
+      alert('Não foi possível apagar o livro.');
+    }
+  }
+}
+
+async function salvarLivro(formData) {
+  try {
+    await booksStore.addBook(formData);
+    alert(`Livro salvo com sucesso!`);
+    authStore.closeAddItemModal();
+  } catch (error) {
+    alert('Não foi possível salvar o livro.');
   }
 }
 </script>
@@ -54,18 +48,29 @@ function handleDelete(id) {
   <div class="home-container">
     <h1>Livros Disponíveis</h1>
 
-    <div class="books-grid">
-      <BookCard 
-        v-for="livro in livrosFiltrados" 
-        :key="livro.id" 
-        :livro="livro"
-        @click="router.push({ name: 'InfoBook', params: { id: livro.id } })"
-        @edit="handleEdit"
-        @delete="handleDelete"
-      />
-      <p v-if="livrosFiltrados.length === 0">Nenhum livro encontrado.</p>
+    <!-- Mostra um estado de carregamento enquanto busca os livros -->
+    <div v-if="booksStore.isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>A carregar livros...</p>
     </div>
 
+    <!-- Mostra a grelha de livros ou uma mensagem se estiver vazia -->
+    <div v-else>
+      <div v-if="booksStore.filteredBooks.length > 0" class="books-grid">
+        <BookCard 
+          v-for="livro in booksStore.filteredBooks" 
+          :key="livro.id" 
+          :livro="livro"
+          @click="router.push({ name: 'InfoBook', params: { id: livro.id } })"
+          @edit="handleEdit(livro.id)"
+          @delete="handleDelete(livro.id)"
+        />
+      </div>
+      <p v-else class="empty-message">Nenhum livro encontrado.</p>
+    </div>
+
+    <!-- O modal agora usa o 'authStore' -->
+    <!-- CORRIGIDO: Adicionadas aspas em @click -->
     <div v-if="authStore.isAddItemModalVisible" class="modal-overlay" @click="authStore.closeAddItemModal">
       <div class="modal-content" @click.stop>
         <button class="modal-close-button" @click="authStore.closeAddItemModal">&times;</button>
@@ -80,6 +85,7 @@ function handleDelete(id) {
 </template>
 
 <style scoped>
+/* O seu CSS anterior foi mantido, com pequenas adições para os estados de carregamento e vazio */
 * {
   box-sizing: border-box;
   padding: 0;
@@ -104,8 +110,40 @@ function handleDelete(id) {
 
 .books-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 2.5rem;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #fff;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #fff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-message {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #fff;
+  width: 100%;
+  padding: 4rem 0;
 }
 
 :deep(.book-card-image) {
@@ -163,12 +201,5 @@ function handleDelete(id) {
 
 .modal-close-button:hover {
   color: #333;
-}
-
-p {
-  text-align: center;
-  font-size: 1.5rem;
-  color: #fff;
-  width: 100%;
 }
 </style>

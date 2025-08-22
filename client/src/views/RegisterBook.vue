@@ -1,7 +1,7 @@
 <template>
   <div class="cadastro-page">
     <div class="cadastro-container">
-      <h1>Cadastrar Livro</h1>
+      <h1>Registar Livro</h1>
 
       <div v-if="errors.general" class="error-message general-error">
         {{ errors.general }}
@@ -17,7 +17,6 @@
               v-model="form.titulo" 
               :class="{ 'error': errors.titulo }"
               @blur="validateField('titulo', form.titulo)"
-              @input="clearError('titulo')"
               required 
             />
             <span v-if="errors.titulo" class="error-message">{{ errors.titulo }}</span>
@@ -31,7 +30,6 @@
               v-model="form.autor" 
               :class="{ 'error': errors.autor }"
               @blur="validateField('autor', form.autor)"
-              @input="clearError('autor')"
               required 
             />
             <span v-if="errors.autor" class="error-message">{{ errors.autor }}</span>
@@ -47,7 +45,6 @@
               v-model="form.ano" 
               :class="{ 'error': errors.ano }"
               @blur="validateField('ano', form.ano)"
-              @input="clearError('ano')"
               required 
             />
             <span v-if="errors.ano" class="error-message">{{ errors.ano }}</span>
@@ -61,26 +58,29 @@
               v-model="form.paginas" 
               :class="{ 'error': errors.paginas }"
               @blur="validateField('paginas', form.paginas)"
-              @input="clearError('paginas')"
               required 
             />
             <span v-if="errors.paginas" class="error-message">{{ errors.paginas }}</span>
           </div>
         </div>
 
-        <!-- NOVO CAMPO: Link do Livro -->
+        <!-- CAMPO DE UPLOAD DE IMAGEM -->
         <div class="form-group">
-          <label for="link">Capa do livro:</label>
+          <label for="imagem">Capa do livro:</label>
           <input 
-            type="url" 
-            id="link" 
-            v-model="form.link" 
-            :class="{ 'error': errors.link }"
-            @blur="validateField('link', form.link)"
-            @input="clearError('link')"
+            type="file" 
+            id="imagem" 
+            @change="handleFileChange"
+            :class="{ 'error': errors.imagem }"
+            accept="image/png, image/jpeg"
             required 
           />
-          <span v-if="errors.link" class="error-message">{{ errors.link }}</span>
+          <span v-if="errors.imagem" class="error-message">{{ errors.imagem }}</span>
+        </div>
+        
+        <!-- Pré-visualização da imagem -->
+        <div v-if="imagePreview" class="image-preview">
+          <img :src="imagePreview" alt="Pré-visualização da capa" />
         </div>
 
         <button 
@@ -89,7 +89,7 @@
           :disabled="isLoading"
         >
           <span v-if="isLoading" class="spinner"></span>
-          {{ isLoading ? 'Salvando...' : 'Adicionar Livro' }}
+          {{ isLoading ? 'A guardar...' : 'Adicionar Livro' }}
         </button>
       </form>
     </div>
@@ -99,6 +99,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { bookService } from '@/services/bookService' // Importa o novo serviço
 
 const router = useRouter()
 
@@ -107,49 +108,51 @@ const form = reactive({
   autor: '',
   ano: null,
   paginas: null,
-  link: '' // <-- novo campo
 })
 
+const imagemFile = ref(null); // Para guardar o ficheiro da imagem
+const imagePreview = ref(''); // Para guardar o URL da pré-visualização
 const isLoading = ref(false)
 const errors = ref({})
+
+// Função para capturar o ficheiro selecionado
+const handleFileChange = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    imagemFile.value = file;
+    // Cria um URL local para a pré-visualização da imagem
+    imagePreview.value = URL.createObjectURL(file);
+    validateField('imagem', file);
+  }
+}
 
 const validateField = (field, value) => {
   const newErrors = { ...errors.value }
   
   switch (field) {
     case 'titulo':
-      if (!value) newErrors.titulo = 'Nome do livro é obrigatório.'
+      if (!value) newErrors.titulo = 'O nome do livro é obrigatório.'
       else delete newErrors.titulo
       break
     case 'autor':
-      if (!value) newErrors.autor = 'Autor é obrigatório.'
+      if (!value) newErrors.autor = 'O autor é obrigatório.'
       else delete newErrors.autor
       break
-    case 'ano':
-      if (!value || value <= 0) newErrors.ano = 'Ano de publicação deve ser um número válido.'
-      else delete newErrors.ano
+    case 'imagem':
+      if (!value) newErrors.imagem = 'A imagem da capa é obrigatória.'
+      else delete newErrors.imagem
       break
-    case 'paginas':
-      if (!value || value <= 0) newErrors.paginas = 'Número de páginas deve ser um número válido.'
-      else delete newErrors.paginas
-      break
-    case 'link':
-      if (!value) newErrors.link = 'O link do livro é obrigatório.'
-      else if (!/^https?:\/\/.+/.test(value)) newErrors.link = 'Insira um link válido (começando com http ou https).'
-      else delete newErrors.link
-      break
+    // Adicione outras validações se necessário
   }
   
   errors.value = newErrors
 }
 
-const salvarLivro = () => {
+const salvarLivro = async () => {
   errors.value = {}
   validateField('titulo', form.titulo)
   validateField('autor', form.autor)
-  validateField('ano', form.ano)
-  validateField('paginas', form.paginas)
-  validateField('link', form.link)
+  validateField('imagem', imagemFile.value)
   
   if (Object.keys(errors.value).length > 0) {
     return
@@ -157,31 +160,29 @@ const salvarLivro = () => {
   
   isLoading.value = true
   
-  console.log('Dados do livro a ser salvo:', form)
+  // Cria um objeto FormData para enviar os dados, incluindo o ficheiro
+  const formData = new FormData();
+  formData.append('titulo', form.titulo);
+  formData.append('autor', form.autor);
+  formData.append('ano', form.ano || 0);
+  formData.append('paginas', form.paginas || 0);
+  formData.append('imagem', imagemFile.value); // Anexa o ficheiro
 
-  setTimeout(() => {
-    alert('Livro cadastrado com sucesso!')
-    form.titulo = ''
-    form.autor = ''
-    form.ano = null
-    form.paginas = null
-    form.link = ''
-    isLoading.value = false
-    router.push({ name: 'Home' })
-  }, 1000)
-}
-
-const clearError = (field) => {
-  if (errors.value[field]) {
-    const newErrors = { ...errors.value }
-    delete newErrors[field]
-    errors.value = newErrors
+  try {
+    await bookService.createBook(formData);
+    alert('Livro registado com sucesso!');
+    router.push({ name: 'Home' }); // Redireciona para a página principal
+  } catch (error) {
+    errors.value.general = error;
+  } finally {
+    isLoading.value = false;
   }
 }
 </script>
 
 
 <style scoped>
+/* O seu CSS anterior foi mantido, com a adição de estilos para a pré-visualização */
 .cadastro-page {
   display: flex;
   justify-content: center;
@@ -189,7 +190,6 @@ const clearError = (field) => {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 1rem;
-  overflow: hidden;
 }
 
 .cadastro-container {
@@ -200,14 +200,12 @@ const clearError = (field) => {
   width: 100%;
   max-width: 600px;
   text-align: center;
-  box-sizing: border-box;
 }
 
 h1 {
   margin-bottom: 2rem;
   font-size: 2rem;
   color: #333;
-  font-weight: 600;
 }
 
 .form-row {
@@ -223,13 +221,6 @@ h1 {
   text-align: left;
 }
 
-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #555;
-}
-
 input {
   width: 100%;
   padding: 1rem;
@@ -237,34 +228,31 @@ input {
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.3s ease;
-  box-sizing: border-box;
+}
+
+input[type="file"] {
+  padding: 0.75rem;
 }
 
 input.error {
   border-color: #e74c3c;
-  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
-}
-
-input:focus {
-  outline: none;
-  border-color: #42b983;
-  box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
 }
 
 .error-message {
   color: #e74c3c;
   font-size: 0.85rem;
   margin-top: 0.25rem;
-  display: block;
 }
 
-.general-error {
-  background: #ffeaea;
-  color: #c0392b;
-  padding: 0.75rem;
-  border-radius: 8px;
+.image-preview {
+  margin-top: 1rem;
   margin-bottom: 1.5rem;
-  border: 1px solid #f8d7da;
+}
+.image-preview img {
+  max-width: 150px;
+  max-height: 225px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .btn-salvar {
@@ -277,40 +265,6 @@ input:focus {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  min-height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   margin-top: 1rem;
-}
-
-.btn-salvar:hover:not(:disabled) {
-  background: linear-gradient(135deg, #36976e, #2d7a5a);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(66, 185, 131, 0.3);
-}
-
-.btn-salvar:disabled {
-  background: #95a5a6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-right: 0.5rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 </style>

@@ -124,7 +124,7 @@ const handleLogin = async () => {
     
     // <-- PASSO 3: Lógica de sucesso integrada
     console.log('Login realizado com sucesso:', response)
-    authStore.login() // Avisa a aplicação inteira que o login foi feito
+    authStore.login(response.user) // Avisa a aplicação inteira que o login foi feito
     router.push({ name: 'Home' }) // Redireciona para a página Home
 
   } catch (error) {

@@ -17,7 +17,6 @@
               v-model="form.titulo" 
               :class="{ 'error': errors.titulo }"
               @blur="validateField('titulo', form.titulo)"
-              @input="clearError('titulo')"
               required 
             />
             <span v-if="errors.titulo" class="error-message">{{ errors.titulo }}</span>
@@ -31,7 +30,6 @@
               v-model="form.autor" 
               :class="{ 'error': errors.autor }"
               @blur="validateField('autor', form.autor)"
-              @input="clearError('autor')"
               required 
             />
             <span v-if="errors.autor" class="error-message">{{ errors.autor }}</span>
@@ -45,12 +43,8 @@
               type="number" 
               id="ano" 
               v-model="form.ano" 
-              :class="{ 'error': errors.ano }"
-              @blur="validateField('ano', form.ano)"
-              @input="clearError('ano')"
               required 
             />
-            <span v-if="errors.ano" class="error-message">{{ errors.ano }}</span>
           </div>
 
           <div class="form-group">
@@ -59,27 +53,25 @@
               type="number" 
               id="paginas" 
               v-model="form.paginas" 
-              :class="{ 'error': errors.paginas }"
-              @blur="validateField('paginas', form.paginas)"
-              @input="clearError('paginas')"
               required 
             />
-            <span v-if="errors.paginas" class="error-message">{{ errors.paginas }}</span>
           </div>
         </div>
 
+        <!-- CAMPO DE UPLOAD DE IMAGEM -->
         <div class="form-group">
-          <label for="imagem">Capa do Livro:</label>
+          <label for="imagem">Alterar Capa do Livro (opcional):</label>
           <input 
-            type="text" 
+            type="file" 
             id="imagem" 
-            v-model="form.imagem" 
-            :class="{ 'error': errors.imagem }"
-            @blur="validateField('imagem', form.imagem)"
-            @input="clearError('imagem')"
-            required 
+            @change="handleFileChange"
+            accept="image/png, image/jpeg"
           />
-          <span v-if="errors.imagem" class="error-message">{{ errors.imagem }}</span>
+        </div>
+        
+        <!-- Pré-visualização da imagem -->
+        <div v-if="imagePreview" class="image-preview">
+          <img :src="imagePreview" alt="Pré-visualização da capa" />
         </div>
 
         <button 
@@ -88,7 +80,7 @@
           :disabled="isLoading"
         >
           <span v-if="isLoading" class="spinner"></span>
-          {{ isLoading ? 'Atualizando...' : 'Atualizar' }}
+          {{ isLoading ? 'A atualizar...' : 'Atualizar' }}
         </button>
       </form>
     </div>
@@ -113,82 +105,81 @@ const form = reactive({
   imagem: '',
 })
 
+const newImageFile = ref(null); // Para guardar o novo ficheiro da imagem
+const imagePreview = ref(''); // Para guardar o URL da pré-visualização
 const isLoading = ref(false)
 const errors = ref({})
 
-onMounted(() => {
-  const bookId = Number(route.params.id)
-  const bookToEdit = booksStore.getBookById(bookId)
+onMounted(async () => {
+  const bookId = route.params.id;
+  
+  if (booksStore.allBooks.length === 0) {
+    await booksStore.fetchBooks();
+  }
+
+  const bookToEdit = booksStore.getBookById(bookId);
   
   if (bookToEdit) {
-    Object.assign(form, bookToEdit)
+    Object.assign(form, bookToEdit);
+    imagePreview.value = form.imagem; // Define a pré-visualização inicial
   } else {
-    router.push({ name: 'Home' })
+    alert('Livro não encontrado. A redirecionar para a biblioteca.');
+    router.push({ name: 'Home' });
   }
-})
+});
+
+const handleFileChange = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    newImageFile.value = file;
+    imagePreview.value = URL.createObjectURL(file);
+  }
+}
 
 const validateField = (field, value) => {
   const newErrors = { ...errors.value }
-  
-  switch (field) {
-    case 'titulo':
-      if (!value) newErrors.titulo = 'Nome do livro é obrigatório.'
-      else delete newErrors.titulo
-      break
-    case 'autor':
-      if (!value) newErrors.autor = 'Autor é obrigatório.'
-      else delete newErrors.autor
-      break
-    case 'ano':
-      if (!value || value <= 0) newErrors.ano = 'Ano de publicação deve ser um número válido.'
-      else delete newErrors.ano
-      break
-    case 'paginas':
-      if (!value || value <= 0) newErrors.paginas = 'Número de páginas deve ser um número válido.'
-      else delete newErrors.paginas
-      break
-    case 'imagem':
-      if (!value) newErrors.imagem = 'URL da imagem é obrigatória.'
-      else delete newErrors.imagem
-      break
-  }
-  
+  if (!value) newErrors[field] = 'Este campo é obrigatório.'
+  else delete newErrors[field]
   errors.value = newErrors
 }
 
-const atualizarLivro = () => {
-  errors.value = {}
+const atualizarLivro = async () => {
   validateField('titulo', form.titulo)
   validateField('autor', form.autor)
-  validateField('ano', form.ano)
-  validateField('paginas', form.paginas)
-  validateField('imagem', form.imagem)
   
-  if (Object.keys(errors.value).length > 0) {
-    return
-  }
+  if (Object.keys(errors.value).length > 0) return
   
   isLoading.value = true
   
-  setTimeout(() => {
-    booksStore.updateBook({ ...form })
-    alert('Livro atualizado com sucesso!')
-    isLoading.value = false
-    // REDIRECIONAMENTO CORRIGIDO
-    router.push({ name: 'InfoBook', params: { id: form.id } })
-  }, 1000)
-}
+  // Cria um FormData para enviar os dados, incluindo o ficheiro (se houver)
+  const formData = new FormData();
+  formData.append('titulo', form.titulo);
+  formData.append('autor', form.autor);
+  formData.append('ano', form.ano || 0);
+  formData.append('paginas', form.paginas || 0);
+  
+  // Anexa a imagem apenas se uma nova foi selecionada
+  if (newImageFile.value) {
+    formData.append('imagem', newImageFile.value);
+  } else {
+    // Se não houver nova imagem, envia o URL antigo
+    formData.append('imagem', form.imagem);
+  }
 
-const clearError = (field) => {
-  if (errors.value[field]) {
-    const newErrors = { ...errors.value }
-    delete newErrors[field]
-    errors.value = newErrors
+  try {
+    await booksStore.updateBook(form.id, formData);
+    alert('Livro atualizado com sucesso!');
+    router.push({ name: 'InfoBook', params: { id: form.id } });
+  } catch (error) {
+    errors.value.general = 'Não foi possível atualizar o livro.';
+  } finally {
+    isLoading.value = false;
   }
 }
 </script>
 
 <style scoped>
+/* O seu CSS foi mantido integralmente */
 .cadastro-page {
   display: flex;
   justify-content: center;
@@ -228,7 +219,6 @@ h1 {
   flex: 1;
   flex-direction: column;
   text-align: left;
-  
 }
 
 label {

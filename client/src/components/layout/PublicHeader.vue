@@ -1,30 +1,24 @@
 <template>
   <header class="public-header">
     <div class="container">
-      <div class="logo">
+      <RouterLink to="/login" class="logo">
         <img src="@/assets/images/logo.png" alt="Logo da Biblioteca" />
         <span>SPECIAL WEEK</span>
-      </div>
+      </RouterLink>
       <nav class="navigation">
-        <!-- Links que levam para as rotas de login e de um futuro cadastro -->
         <RouterLink to="/login" class="nav-link button">Login</RouterLink>
         <RouterLink :to="{ name: 'Register' }" class="nav-link button">Cadastrar-se</RouterLink>
-
       </nav>
     </div>
   </header>
 </template>
 
 <script setup>
-import { RouterLink, useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
+// Apenas os imports necessários são mantidos.
+import { RouterLink } from 'vue-router'
 
-const authStore = useAuthStore();
-const router = useRouter();
-
-// Esta função garante que o modal de cadastro abra se já estivermos na página de login,
-// ou nos leva para lá primeiro se estivermos em outra página pública.
-
+// Não precisamos mais do useRouter ou do useAuthStore aqui,
+// pois a navegação é tratada diretamente pelos componentes <RouterLink>.
 </script>
 
 <style scoped>
@@ -40,7 +34,7 @@ const router = useRouter();
   box-sizing: border-box;
 }
 .container {
-
+  max-width: 1200px; /* Adicionado para consistência */
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -54,6 +48,7 @@ const router = useRouter();
   font-size: 1.25rem;
   color: #333;
   cursor: pointer;
+  text-decoration: none; /* Garante que não haja sublinhado */
 }
 .logo img {
   height: 40px;
